@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, resolve } from "node:path";
@@ -205,16 +206,38 @@ async function renderVideo(page, screenshots) {
     scenes.push({ ...item, image });
   }
   const script = JSON.stringify(scenes);
+  const audioPath = resolve(outDir, "narracao.wav");
+  const audioBase64 = existsSync(audioPath) ? (await readFile(audioPath)).toString("base64") : null;
   const result = await evalPage(page, `
     (async () => {
       const scenes = ${script};
+      const audioBase64 = ${JSON.stringify(audioBase64)};
       document.body.innerHTML = '<canvas id="c" width="1280" height="720"></canvas>';
       document.body.style.margin = '0';
       const canvas = document.getElementById('c');
       const ctx = canvas.getContext('2d');
       const stream = canvas.captureStream(30);
+      let audioContext = null;
+      let audioSource = null;
+      let audioDuration = scenes.length * 12;
+      if (audioBase64) {
+        audioContext = new AudioContext();
+        const binary = atob(audioBase64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const audioBuffer = await audioContext.decodeAudioData(bytes.buffer);
+        audioDuration = audioBuffer.duration + 1;
+        const destination = audioContext.createMediaStreamDestination();
+        audioSource = audioContext.createBufferSource();
+        audioSource.buffer = audioBuffer;
+        audioSource.connect(destination);
+        for (const track of destination.stream.getAudioTracks()) stream.addTrack(track);
+      }
       const chunks = [];
-      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+      const mimeType = MediaRecorder.isTypeSupported('video/webm; codecs=vp8,opus')
+        ? 'video/webm; codecs=vp8,opus'
+        : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
       const done = new Promise(resolve => recorder.onstop = resolve);
       const images = await Promise.all(scenes.map(scene => new Promise((resolve, reject) => {
@@ -224,8 +247,10 @@ async function renderVideo(page, screenshots) {
         img.src = scene.image;
       })));
       const fps = 30;
-      const secondsPerScene = 12;
-      recorder.start();
+      const secondsPerScene = audioDuration / scenes.length;
+      recorder.start(1000);
+      if (audioContext) await audioContext.resume();
+      if (audioSource) audioSource.start(0);
       for (let s = 0; s < scenes.length; s++) {
         for (let frame = 0; frame < fps * secondsPerScene; frame++) {
           drawScene(ctx, scenes[s], images[s], frame / (fps * secondsPerScene));
@@ -234,6 +259,7 @@ async function renderVideo(page, screenshots) {
       }
       recorder.stop();
       await done;
+      if (audioContext) await audioContext.close();
       const blob = new Blob(chunks, { type: 'video/webm' });
       const buffer = await blob.arrayBuffer();
       let binary = '';
@@ -285,7 +311,7 @@ async function renderVideo(page, screenshots) {
       }
     })()
   `, true);
-  const videoPath = resolve(outDir, "demo-n2-evoluir.webm");
+  const videoPath = resolve(outDir, audioBase64 ? "demo-n2-evoluir-narrado.webm" : "demo-n2-evoluir.webm");
   await writeFile(videoPath, Buffer.from(result, "base64"));
   return videoPath;
 }

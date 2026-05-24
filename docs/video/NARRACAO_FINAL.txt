@@ -1,0 +1,19 @@
+﻿Neste video demonstramos a evolucao da aplicacao de comparacao de algoritmos de busca em strings. A primeira entrega ja possuia os quatro algoritmos: Naive, Rabin-Karp, KMP e Boyer-Moore. Nesta etapa, o foco passou a ser engenharia de software e observabilidade.
+
+No frontend, o modo escolhido e Backend instrumentado. Isso significa que a busca nao acontece apenas no navegador. O frontend envia o texto, o padrao e o algoritmo escolhido para uma API Node.js. Essa API executa os algoritmos usando o padrao Strategy e registra traces, metricas e logs com OpenTelemetry.
+
+Na tela de resultados, os quatro algoritmos recebem exatamente a mesma entrada e retornam uma estrutura padronizada chamada SearchResult. Essa estrutura inclui o nome do algoritmo, quantidade de ocorrencias, numero de comparacoes, tempo de execucao, complexidade teorica e o traceId da execucao.
+
+O Naive faz comparacao direta posicao por posicao. Ele e simples, mas pode ser custoso no pior caso. O Rabin-Karp usa hash deslizante para comparar janelas do texto. O KMP usa a tabela LPS para evitar voltar no texto. Ja o Boyer-Moore compara da direita para a esquerda e pode saltar varias posicoes quando encontra incompatibilidades.
+
+Agora entramos na parte principal desta etapa: observabilidade. O Grafana centraliza os dados coletados da aplicacao. Os graficos mostram tempo medio por algoritmo, numero total de execucoes, comparacoes totais e latencia por percentis. Esses dados vem do Prometheus, que recebe metricas exportadas pelo OpenTelemetry Collector.
+
+Nos logs do Grafana, a fonte e o Loki. Cada execucao gera logs estruturados com algoritmo, duracao, numero de comparacoes, quantidade de ocorrencias, tamanho do texto e tamanho do padrao. O ponto mais importante e que os logs tambem carregam trace_id e span_id.
+
+Essa correlacao permite relacionar uma linha de log com uma trace especifica no Jaeger e com as metricas agregadas no Prometheus. Isso e uma pratica essencial de observabilidade, porque facilita entender o que aconteceu em uma execucao real.
+
+No Jaeger, cada chamada ao endpoint de busca cria uma trace principal chamada search.request. Dentro dela, existe um span separado para cada algoritmo executado, chamado search.algorithm. Assim conseguimos observar quanto tempo cada estrategia consumiu dentro da mesma requisicao.
+
+Por fim, a consulta direta no Loki confirma que os logs foram realmente ingeridos. A query filtra pelo service_name da aplicacao e pelo termo search. O resultado mostra os dados estruturados enviados pelo backend, incluindo algoritmo, comparacoes, duracao, matches, trace_id e span_id.
+
+Com essa evolucao, o projeto deixou de ser apenas um comparador visual de algoritmos e passou a ser uma aplicacao organizada, monitoravel e preparada para analise com dados reais.
