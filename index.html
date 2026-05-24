@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizador de Algoritmos de Busca em Strings</title>
+
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+
+    <!-- ============== HEADER ============== -->
+    <header class="page-header">
+      <h1 class="title">Visualizador de Algoritmos de Busca em Strings</h1>
+      <p class="subtitle">Comparação passo a passo dos algoritmos Naive, Rabin-Karp, KMP e Boyer-Moore.</p>
+    </header>
+
+    <!-- ============== SETUP ============== -->
+    <section class="section" aria-labelledby="setup-h">
+      <div class="section-header">
+        <h2 class="section-title" id="setup-h">Setup</h2>
+        <span class="section-num">§1</span>
+      </div>
+
+      <div class="setup-grid">
+        <!-- Upload -->
+        <div class="field">
+          <label class="label" for="file-input">Arquivos de texto</label>
+          <div class="file-upload">
+            <input type="file" id="file-input" accept=".txt" multiple>
+            <label for="file-input" class="btn btn-secondary" id="file-input-label">Escolher arquivos</label>
+          </div>
+        </div>
+
+        <!-- Lista de arquivos -->
+        <div class="field">
+          <span class="label">Carregados</span>
+          <ul class="file-list" id="file-list" aria-live="polite">
+            <li class="file-list-empty">Nenhum arquivo carregado.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="controls-grid">
+        <div class="field field-grow">
+          <label class="label" for="pattern-input">Padrão a buscar</label>
+          <input type="text" id="pattern-input" class="input input-mono" placeholder="ex: exemplo" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label class="label" for="algorithm-select">Algoritmo</label>
+          <select id="algorithm-select" class="input">
+            <option value="naive">Naive (força bruta)</option>
+            <option value="rabin-karp">Rabin-Karp</option>
+            <option value="kmp">Knuth-Morris-Pratt</option>
+            <option value="boyer-moore">Boyer-Moore</option>
+            <option value="all">Todos (comparativo)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <span class="label" aria-hidden="true">&nbsp;</span>
+          <button id="btn-run" class="btn btn-primary" disabled>Executar</button>
+        </div>
+
+        <div class="field">
+          <span class="label" aria-hidden="true">&nbsp;</span>
+          <button id="btn-step" class="btn btn-secondary" disabled>Passo a passo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== VISUALIZAÇÃO ============== -->
+    <section class="section" aria-labelledby="viz-h">
+      <div class="section-header">
+        <h2 class="section-title" id="viz-h">Visualização</h2>
+        <span class="section-num">§2</span>
+      </div>
+
+      <div class="viz-grid">
+        <!-- Coluna principal -->
+        <div class="viz-main">
+          <div class="viz-text" id="viz-text" aria-label="Visualização do texto e padrão">
+            <div class="viz-empty">Carregue um arquivo e defina um padrão para começar.</div>
+          </div>
+
+          <div class="viz-controls">
+            <button id="btn-prev" class="btn btn-secondary" disabled aria-label="Passo anterior">◀ Anterior</button>
+            <button id="btn-next" class="btn btn-secondary" disabled aria-label="Próximo passo">Próximo ▶</button>
+            <button id="btn-reset" class="btn btn-secondary" disabled aria-label="Reiniciar">↻ Reiniciar</button>
+            <span class="step-counter" id="step-counter"></span>
+          </div>
+        </div>
+
+        <!-- Coluna lateral: estado + estrutura auxiliar -->
+        <aside class="viz-side">
+          <div class="state-panel">
+            <h3 class="panel-title">Estado</h3>
+            <dl class="kv-list" id="state-list">
+              <dt>Tam. texto</dt>    <dd id="state-textlen">—</dd>
+              <dt>Tam. padrão</dt>   <dd id="state-patlen">—</dd>
+              <dt>I (texto)</dt>     <dd id="state-i">—</dd>
+              <dt>J (padrão)</dt>    <dd id="state-j">—</dd>
+              <dt>Comparações</dt>   <dd id="state-comparisons">0</dd>
+              <dt>Deslocamento</dt>  <dd id="state-shift">—</dd>
+              <dt>Tempo</dt>         <dd id="state-time">—</dd>
+            </dl>
+          </div>
+
+          <div class="aux-panel">
+            <h3 class="panel-title">Estrutura auxiliar</h3>
+            <div id="aux-content" class="aux-content">
+              <p class="aux-empty">A estrutura aparece quando o algoritmo é executado.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============== LOG ============== -->
+    <section class="section" aria-labelledby="log-h">
+      <div class="section-header">
+        <h2 class="section-title" id="log-h">Log de execução</h2>
+        <span class="section-num">§3</span>
+      </div>
+
+      <ol class="log" id="log" role="log" aria-live="polite">
+        <li class="log-empty">Nenhuma execução ainda.</li>
+      </ol>
+    </section>
+
+    <!-- ============== RESULTADOS ============== -->
+    <section class="section" aria-labelledby="results-h">
+      <div class="section-header">
+        <h2 class="section-title" id="results-h">Resultados comparativos</h2>
+        <span class="section-num">§4</span>
+      </div>
+
+      <table class="results-table" id="results-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Algoritmo</th>
+            <th class="num">Comparações</th>
+            <th class="num">Tempo</th>
+            <th class="num">Ocorrências</th>
+            <th>Complexidade teórica</th>
+          </tr>
+        </thead>
+        <tbody id="results-body">
+          <tr class="results-empty">
+            <td colspan="6">Execute para ver resultados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="page-footer">
+      <p>Implementação acadêmica · Padrão Strategy · HTML + JS puro</p>
+    </footer>
+
+  </div>
+
+  <!-- Scripts (ordem importa - sem módulos para funcionar com file://) -->
+  <script src="js/metrics.js"></script>
+  <script src="js/strategies/SearchStrategy.js"></script>
+  <script src="js/strategies/NaiveSearch.js"></script>
+  <script src="js/strategies/RabinKarpSearch.js"></script>
+  <script src="js/strategies/KMPSearch.js"></script>
+  <script src="js/strategies/BoyerMooreSearch.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
