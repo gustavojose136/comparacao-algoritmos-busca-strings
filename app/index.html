@@ -65,6 +65,14 @@
         </div>
 
         <div class="field">
+          <label class="label" for="execution-mode">Modo</label>
+          <select id="execution-mode" class="input">
+            <option value="local">Local</option>
+            <option value="backend">Backend instrumentado</option>
+          </select>
+        </div>
+
+        <div class="field">
           <span class="label" aria-hidden="true">&nbsp;</span>
           <button id="btn-run" class="btn btn-primary" disabled>Executar</button>
         </div>
@@ -159,6 +167,21 @@
           </tr>
         </tbody>
       </table>
+    </section>
+
+    <!-- ============== OBSERVABILIDADE ============== -->
+    <section class="section" aria-labelledby="obs-h">
+      <div class="section-header">
+        <h2 class="section-title" id="obs-h">Observabilidade</h2>
+        <span class="section-num">Â§5</span>
+      </div>
+
+      <div class="observability-grid">
+        <a class="btn btn-secondary" href="http://localhost:3001/d/busca-strings-n2/comparacao-de-algoritmos-de-busca-em-strings" target="_blank" rel="noreferrer">Grafana</a>
+        <a class="btn btn-secondary" href="http://localhost:16686/search?service=busca-strings-service" target="_blank" rel="noreferrer">Jaeger</a>
+        <a class="btn btn-secondary" href="http://localhost:9090" target="_blank" rel="noreferrer">Prometheus</a>
+        <span class="backend-status" id="backend-status">backend: nao consultado</span>
+      </div>
     </section>
 
     <footer class="page-footer">

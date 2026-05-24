@@ -1,0 +1,125 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "title": "Jaeger traces",
+      "url": "http://localhost:16686/search?service=busca-strings-service",
+      "type": "link",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (algorithm_name) (search_duration_ms_milliseconds_sum) / sum by (algorithm_name) (search_duration_ms_milliseconds_count)",
+          "legendFormat": "{{algorithm_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Tempo medio acumulado por algoritmo",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (algorithm_name) (search_executions_total)",
+          "legendFormat": "{{algorithm_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Numero total de execucoes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "sum by (algorithm_name) (search_comparisons_total)",
+          "legendFormat": "{{algorithm_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Comparacoes totais",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le, algorithm_name) (rate(search_duration_ms_milliseconds_bucket[5m])))",
+          "legendFormat": "p50 {{algorithm_name}}",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, algorithm_name) (rate(search_duration_ms_milliseconds_bucket[5m])))",
+          "legendFormat": "p95 {{algorithm_name}}",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, algorithm_name) (rate(search_duration_ms_milliseconds_bucket[5m])))",
+          "legendFormat": "p99 {{algorithm_name}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Latencia p50 / p95 / p99",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "expr": "{service_name=\"n2-evoluir/busca-strings-service\"} |= \"search\"",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs estruturados correlacionados com trace_id",
+      "type": "logs"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["algoritmos", "opentelemetry", "n2"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timezone": "browser",
+  "title": "Comparacao de Algoritmos de Busca em Strings",
+  "uid": "busca-strings-n2",
+  "version": 1,
+  "weekStart": ""
+}

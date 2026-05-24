@@ -10,8 +10,11 @@ Thumbs.db
 
 # Node (caso instalem ferramentas locais)
 node_modules/
-package-lock.json
 .npm
 
 # Logs
 *.log
+
+# Artefatos de entrega gerados
+entrega-n2-evoluir.zip
+entrega-n2-evoluir.tar.gz

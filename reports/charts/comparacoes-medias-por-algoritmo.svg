@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-label="Comparacoes medias por algoritmo">
+  <style>
+    text { font-family: Arial, sans-serif; fill: #111; font-size: 14px; }
+    .title { font-size: 22px; font-weight: 700; }
+    .axis { stroke: #111; stroke-width: 1; }
+    .rule { stroke: #e5e5e0; stroke-width: 1; }
+    .value { font-family: Consolas, monospace; font-size: 13px; }
+  </style>
+  <rect width="100%" height="100%" fill="#FAFAF7"/>
+  <text x="80" y="34" class="title">Comparacoes medias por algoritmo</text>
+  <text x="80" y="54">Unidade: comparacoes</text>
+  <line x1="80" y1="328" x2="860" y2="328" class="axis"/>
+  <line x1="80" y1="56" x2="80" y2="328" class="axis"/>
+  <line x1="80" y1="56" x2="860" y2="56" class="rule"/>
+  
+      <rect x="117.05" y="56" width="120.9" height="272" fill="#111111"/>
+      <text x="177.5" y="368" text-anchor="middle">Naive</text>
+      <text x="177.5" y="48" text-anchor="middle" class="value">4.641.037</text>
+      <rect x="312.05" y="326.0720839123885" width="120.9" height="1.927916087611504" fill="#2F5233"/>
+      <text x="372.5" y="368" text-anchor="middle">Rabin-Karp</text>
+      <text x="372.5" y="318.0720839123885" text-anchor="middle" class="value">32.895</text>
+      <rect x="507.05" y="63.43222337890808" width="120.9" height="264.5677766210919" fill="#7A2E2E"/>
+      <text x="567.5" y="368" text-anchor="middle">KMP</text>
+      <text x="567.5" y="55.43222337890808" text-anchor="middle" class="value">4.514.224</text>
+      <rect x="702.05" y="245.5467176943385" width="120.9" height="82.4532823056615" fill="#4A4A4A"/>
+      <text x="762.5" y="368" text-anchor="middle">Boyer-Moore</text>
+      <text x="762.5" y="237.5467176943385" text-anchor="middle" class="value">1.406.870</text>
+</svg>

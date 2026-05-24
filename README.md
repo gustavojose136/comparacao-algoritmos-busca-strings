@@ -1,117 +1,156 @@
-# Visualizador de Algoritmos de Busca em Strings
+# N2 Evoluir - Comparacao de Algoritmos de Busca em Strings
 
-Aplicação web para comparar e visualizar passo a passo os algoritmos clássicos de busca de padrões em strings:
+Universidade Catolica de Santa Catarina  
+Disciplina: Algoritmos Avancados  
+Professor: Glauco Vinicius Scheffel  
+Alunos: Caue Fernandes Caetano e Walter Theodoro
 
-- **Naive** (força bruta) — O(n · m)
-- **Rabin-Karp** (rolling hash) — O(n + m) médio
-- **Knuth-Morris-Pratt (KMP)** — O(n + m)
-- **Boyer-Moore** (heurística bad-character) — O(n / m) melhor caso
+Esta versao evolui a entrega anterior de busca em strings. O foco agora e engenharia de software, arquitetura, observabilidade e analise com dados reais.
 
-## Como executar
+## O que foi entregue
 
-Não há build nem servidor. Basta abrir `index.html` no navegador.
+- Frontend academico em HTML, CSS e JavaScript puro, mantido em `app/`.
+- Backend Node.js em `service/` com Strategy, SearchResult e API REST.
+- Instrumentacao OpenTelemetry com traces, metricas e logs.
+- Stack local Docker com OTel Collector, Jaeger, Prometheus, Loki e Grafana.
+- Dashboard Grafana provisionado em `observability/grafana/dashboards/`.
+- Benchmarks reais em `reports/`, com dados em JSON, CSV, graficos SVG e analise.
+- Roteiro de video e relatorio de uso de IA em `docs/`.
 
-```
-# opção 1: clique duplo em index.html
-# opção 2: via terminal (recomendado para evitar advertências de file://)
-python3 -m http.server 8000
-# depois abrir http://localhost:8000 no navegador
-```
+## Como executar tudo
 
-> **Importante:** algumas funcionalidades como a fonte do Google Fonts precisam de
-> conexão à internet na primeira carga.
-
-## Como usar
-
-1. **Carregar arquivos**: clique em "Escolher arquivos" e selecione um ou mais `.txt`.
-2. **Selecionar arquivo**: clique no nome do arquivo na lista para defini-lo como ativo (marcado por ●).
-3. **Definir padrão**: digite a string a buscar no campo "Padrão".
-4. **Escolher algoritmo**: no dropdown, pick um dos quatro — ou "Todos (comparativo)" para rodar os quatro de uma vez.
-5. **Executar**:
-   - **Executar** → execução normal, mostra apenas o resultado final + métricas.
-   - **Passo a passo** → entra no modo interativo. Navegue com os botões Anterior/Próximo ou pelas setas do teclado (←/→).
-6. **Reiniciar**: o botão `↻` volta o passo a passo ao primeiro estado.
-
-## Estrutura do projeto
-
-```
-projeto/
-├── index.html              # estrutura da página
-├── styles.css              # sistema de design (ver UI_SPECS.md)
-├── UI_SPECS.md             # especificação da interface
-├── README.md               # este arquivo
-├── test.js                 # suite de testes (rode com `node test.js`)
-├── exemplos/
-│   ├── lorem.txt           # texto em latim para testes
-│   └── dna.txt             # sequência tipo DNA para testes
-└── js/
-    ├── metrics.js          # cronômetro + formatadores
-    ├── ui.js               # camada de DOM e renderização
-    ├── main.js             # orquestrador (eventos, fluxo)
-    └── strategies/
-        ├── SearchStrategy.js   # classe base abstrata (Strategy)
-        ├── NaiveSearch.js
-        ├── RabinKarpSearch.js
-        ├── KMPSearch.js
-        └── BoyerMooreSearch.js
+```bash
+docker compose up --build
 ```
 
-## Arquitetura — padrão Strategy
+Depois acesse:
 
-A interface comum está em `SearchStrategy`:
+- App web: http://localhost:8080
+- Backend: http://localhost:3000/health
+- Grafana: http://localhost:3001 (admin/admin)
+- Jaeger: http://localhost:16686
+- Prometheus: http://localhost:9090
+- Loki: http://localhost:3100
 
+No frontend, selecione `Backend instrumentado` no campo `Modo` para gerar traces, metricas e logs reais.
+
+Para popular o dashboard sem usar a interface:
+
+```bash
+cd service
+npm run traffic
 ```
-            ┌─────────────────────────┐
-            │    SearchStrategy       │  (abstrata)
-            │    + search(t, p)       │
-            │    + *steps(t, p)       │
-            └────────────┬────────────┘
-                         │
-       ┌─────────────────┼─────────────────┬──────────────────┐
-       ▼                 ▼                 ▼                  ▼
-┌─────────────┐  ┌──────────────────┐ ┌──────────┐  ┌──────────────────┐
-│ NaiveSearch │  │ RabinKarpSearch  │ │ KMPSearch│  │ BoyerMooreSearch │
-└─────────────┘  └──────────────────┘ └──────────┘  └──────────────────┘
+
+Ao subir com Docker Compose, o servico `telemetry-seeder` ja roda automaticamente:
+
+1. testes unitarios do backend.
+2. 40 requisicoes instrumentadas contra o backend.
+3. geracao de dados para Prometheus, Jaeger, Loki e Grafana.
+
+Esse servico termina sozinho depois de preencher os graficos.
+
+## API principal
+
+```http
+POST /search
+Content-Type: application/json
+
+{
+  "text": "abracadabra",
+  "pattern": "abra",
+  "algorithm": "all",
+  "source": "manual-test"
+}
 ```
 
-Cada estratégia implementa dois métodos:
+`algorithm` aceita: `all`, `naive`, `rabin-karp`, `kmp`, `boyer-moore`.
 
-- `search(text, pattern)` — versão otimizada para execução normal; retorna `{ matches, comparisons, timeMs }`.
-- `*steps(text, pattern)` — generator que produz estados intermediários para a visualização passo a passo. Cada `yield` retorna um objeto com índices, contadores, estrutura auxiliar e mensagem para o log.
+O retorno usa a estrutura `SearchResult`:
 
-A separação entre as duas APIs permite que a execução normal seja livre do overhead dos `yield`s, dando métricas de tempo realistas, enquanto o passo a passo tem todos os detalhes necessários para a visualização.
-
-## Métricas
-
-Para cada execução, a aplicação coleta e exibe:
-
-- **Tempo de execução** — via `performance.now()`, precisão sub-milissegundo.
-- **Número de comparações de caractere** — contador interno da estratégia.
-- **Tamanho do texto e do padrão** — em caracteres.
-- **Complexidade teórica** — rotulada para cada algoritmo.
-- **Ocorrências encontradas**.
-
-Na tabela comparativa (quando se roda "Todos"), o algoritmo mais rápido recebe uma marca `★`.
-
-## Validação
-
-O script `test.js` roda 18 casos de teste contra cada um dos 4 algoritmos (versão `search()` e versão `*steps()` separadamente), validando os resultados contra `String.prototype.indexOf`. Total: 144 asserções.
-
+```json
+{
+  "algorithm": "Naive",
+  "textLength": 11,
+  "patternLength": 4,
+  "pattern": "abra",
+  "matches": [0, 7],
+  "matchCount": 2,
+  "comparisons": 16,
+  "durationMs": 0.04,
+  "complexity": "O(n * m)",
+  "traceId": "..."
+}
 ```
+
+## Observabilidade
+
+Cada chamada `/search` cria:
+
+- 1 trace principal `search.request`.
+- 1 span por algoritmo `search.algorithm`.
+- metricas `search_executions_total`, `search_duration_ms`, `search_comparisons_total`, `search_processed_chars_total`, `search_matches_total`.
+- logs estruturados com `trace_id`, `span_id`, algoritmo, tempo, comparacoes e ocorrencias.
+
+O dashboard mostra tempo medio por algoritmo, numero de execucoes, comparacoes por segundo, latencia p50/p95/p99 e logs recentes.
+
+## Benchmarks reais
+
+Os dados usados ficam em `data/`:
+
+- `shakespeare.txt` - The Complete Works of William Shakespeare, Project Gutenberg.
+- `don-quixote.txt` - Don Quixote, Project Gutenberg.
+- `ecoli.fna` - genoma Escherichia coli K-12 MG1655, NCBI.
+
+Para baixar novamente:
+
+```bash
+cd service
+npm run data:download
+```
+
+Para rodar benchmark e gerar analise/graficos:
+
+```bash
+cd service
+npm run benchmark
+npm run report:benchmarks
+```
+
+Os resultados atuais estao em `reports/benchmark-results.json`, `reports/benchmark-results.csv`, `reports/benchmark-analysis.md` e `reports/charts/`.
+
+## Testes e validacao
+
+Frontend original:
+
+```bash
+cd app
 node test.js
 ```
 
-## Detalhes de implementação dignos de nota
+Backend:
 
-- **Generators do JavaScript** (`function*` + `yield`) são a chave do passo a passo limpo: o mesmo algoritmo é usado, ele apenas pausa em cada comparação.
-- **Pré-coleta dos estados**: no modo passo a passo, todos os estados são coletados antecipadamente em um array. Isso simplifica a navegação prev/next para O(1) e permite o "Reiniciar" sem reexecutar o algoritmo.
-- **Janela de visualização**: para textos grandes (> 80 chars), a área de visualização mostra apenas uma janela centrada no índice atual, com indicadores `[...]` para o conteúdo truncado.
-- **Boyer-Moore — bad-character only**: foi implementada a heurística bad-character apenas. A versão completa com good-suffix é uma extensão possível para o relatório.
-- **Rabin-Karp — hash polinomial**: base `d=256` (ASCII estendido), módulo `q=1000003` (primo). Verificação caractere a caractere protege contra colisões.
+```bash
+cd service
+npm test
+npm audit --audit-level=moderate
+```
 
-## Próximos passos / extensões possíveis
+Validacoes feitas nesta entrega:
 
-- Suporte a busca case-insensitive (toggle).
-- Heurística good-suffix no Boyer-Moore (versão completa do algoritmo).
-- Exportar log e tabela de resultados como CSV.
-- Modo "benchmark" rodando cada algoritmo N vezes e tirando estatísticas.
+- Frontend: 144 testes passando.
+- Backend: 4 suites de algoritmo passando.
+- API: smoke test em `/health` e `/search`.
+- Docker Compose: `docker compose config` OK.
+- NPM audit: 0 vulnerabilidades.
+
+## Estrutura
+
+```text
+app/                  frontend e testes da primeira etapa
+service/              backend Node.js instrumentado
+observability/        collector, Prometheus, Loki e Grafana
+data/                 corpora reais usados nos benchmarks
+reports/              resultados, graficos e analise
+docs/                 roteiro de video e relatorios
+docker-compose.yml    ambiente completo local
+```

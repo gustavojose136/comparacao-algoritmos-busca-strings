@@ -1,0 +1,31 @@
+{
+  "name": "busca-strings-observability-service",
+  "version": "2.0.0",
+  "description": "Backend instrumentado com OpenTelemetry para comparar algoritmos de busca em strings.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js",
+    "data:download": "node src/benchmark/downloadData.js",
+    "benchmark": "node src/benchmark/runBenchmark.js",
+    "report:benchmarks": "node src/benchmark/generateAnalysis.js",
+    "traffic": "node src/benchmark/generateTraffic.js",
+    "startup:telemetry": "npm test && npm run traffic"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.218.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.218.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.218.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.218.0",
+    "@opentelemetry/resources": "^2.7.1",
+    "@opentelemetry/sdk-logs": "^0.218.0",
+    "@opentelemetry/sdk-metrics": "^2.7.1",
+    "@opentelemetry/sdk-node": "^0.218.0",
+    "@opentelemetry/semantic-conventions": "^1.38.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

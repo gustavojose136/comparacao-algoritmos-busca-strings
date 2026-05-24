@@ -20,6 +20,7 @@ const UI = {
       fileList:         document.getElementById("file-list"),
       patternInput:     document.getElementById("pattern-input"),
       algorithmSelect:  document.getElementById("algorithm-select"),
+      executionMode:    document.getElementById("execution-mode"),
       btnRun:           document.getElementById("btn-run"),
       btnStep:          document.getElementById("btn-step"),
       btnPrev:          document.getElementById("btn-prev"),
@@ -37,6 +38,7 @@ const UI = {
       auxContent:       document.getElementById("aux-content"),
       log:              document.getElementById("log"),
       resultsBody:      document.getElementById("results-body"),
+      backendStatus:    document.getElementById("backend-status"),
     };
   },
 
@@ -284,6 +286,11 @@ const UI = {
 
   clearResults() {
     this.renderResults([]);
+  },
+
+  renderBackendStatus(message, traceId) {
+    const suffix = traceId ? ` · trace ${traceId}` : "";
+    this.el.backendStatus.textContent = `${message}${suffix}`;
   },
 
   // -------- Controles --------

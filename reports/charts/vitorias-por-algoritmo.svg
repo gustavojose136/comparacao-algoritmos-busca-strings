@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-label="Quantidade de cenarios em que foi mais rapido">
+  <style>
+    text { font-family: Arial, sans-serif; fill: #111; font-size: 14px; }
+    .title { font-size: 22px; font-weight: 700; }
+    .axis { stroke: #111; stroke-width: 1; }
+    .rule { stroke: #e5e5e0; stroke-width: 1; }
+    .value { font-family: Consolas, monospace; font-size: 13px; }
+  </style>
+  <rect width="100%" height="100%" fill="#FAFAF7"/>
+  <text x="80" y="34" class="title">Quantidade de cenarios em que foi mais rapido</text>
+  <text x="80" y="54">Unidade: cenarios</text>
+  <line x1="80" y1="328" x2="860" y2="328" class="axis"/>
+  <line x1="80" y1="56" x2="80" y2="328" class="axis"/>
+  <line x1="80" y1="56" x2="860" y2="56" class="rule"/>
+  
+      <rect x="117.05" y="294" width="120.9" height="34" fill="#111111"/>
+      <text x="177.5" y="368" text-anchor="middle">Naive</text>
+      <text x="177.5" y="286" text-anchor="middle" class="value">1</text>
+      <rect x="312.05" y="328" width="120.9" height="0" fill="#2F5233"/>
+      <text x="372.5" y="368" text-anchor="middle">Rabin-Karp</text>
+      <text x="372.5" y="320" text-anchor="middle" class="value">0</text>
+      <rect x="507.05" y="56" width="120.9" height="272" fill="#7A2E2E"/>
+      <text x="567.5" y="368" text-anchor="middle">KMP</text>
+      <text x="567.5" y="48" text-anchor="middle" class="value">8</text>
+      <rect x="702.05" y="124" width="120.9" height="204" fill="#4A4A4A"/>
+      <text x="762.5" y="368" text-anchor="middle">Boyer-Moore</text>
+      <text x="762.5" y="116" text-anchor="middle" class="value">6</text>
+</svg>

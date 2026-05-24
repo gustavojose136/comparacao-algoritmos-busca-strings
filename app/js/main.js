@@ -108,12 +108,18 @@ const App = {
 
   // -------- Execução normal --------
 
-  _runOnce() {
+  async _runOnce() {
     const file = this.files[this.selectedFileIdx];
     const pattern = UI.el.patternInput.value;
     const algKey = UI.el.algorithmSelect.value;
+    const mode = UI.el.executionMode.value;
 
     if (this.stepMode) this._exitStepMode();
+
+    if (mode === "backend") {
+      await this._runBackend(file, pattern, algKey);
+      return;
+    }
 
     UI.clearLog();
     UI.appendLog(`Execução normal · arquivo "${file.name}" (${Metrics.formatBytes(file.size)}) · padrão "${pattern}" (${pattern.length} chars).`);
@@ -163,6 +169,63 @@ const App = {
     UI.renderState(finalState, first.timeMs);
     UI.clearAux();
     UI.setStepCounter();
+  },
+
+  async _runBackend(file, pattern, algKey) {
+    UI.clearLog();
+    UI.appendLog(`Execucao instrumentada no backend · arquivo "${file.name}" (${Metrics.formatBytes(file.size)}) · padrao "${pattern}" (${pattern.length} chars).`);
+    UI.renderBackendStatus("backend: executando");
+
+    try {
+      const response = await fetch("http://localhost:3000/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: file.content,
+          pattern,
+          algorithm: algKey,
+          source: "frontend"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const payload = await response.json();
+      const results = payload.results.map(result => ({
+        name: result.algorithm,
+        complexity: result.complexity,
+        comparisons: result.comparisons,
+        timeMs: result.durationMs,
+        matches: result.matches
+      }));
+
+      for (const result of payload.results) {
+        UI.appendLog(`${result.algorithm}: ${result.matchCount} ocorrencia(s) · ${Metrics.formatNumber(result.comparisons)} comparacoes · ${Metrics.formatTime(result.durationMs)}.`);
+      }
+      UI.appendLog(`trace_id: ${payload.traceId}`);
+      UI.renderBackendStatus("backend: ok", payload.traceId);
+      UI.renderResults(results);
+
+      const first = results[0];
+      const finalState = {
+        type: "done",
+        i: -1, j: -1, shift: 0,
+        comparisons: first.comparisons,
+        matches: first.matches,
+        matchType: null,
+        aux: null
+      };
+      UI.setSizes(file.content.length, pattern.length);
+      UI.renderVisualization(file.content, pattern, finalState);
+      UI.renderState(finalState, first.timeMs);
+      UI.clearAux();
+      UI.setStepCounter();
+    } catch (error) {
+      UI.renderBackendStatus("backend: indisponivel");
+      UI.appendLog(`Falha ao consultar backend: ${error.message}. Inicie a stack com docker compose up --build.`);
+    }
   },
 
   // -------- Passo a passo --------

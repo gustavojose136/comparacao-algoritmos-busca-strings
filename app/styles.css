@@ -150,7 +150,7 @@ body {
 
 .controls-grid {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: 1fr auto auto auto auto;
   gap: var(--space-4);
   align-items: end;
 }
@@ -510,6 +510,28 @@ select.input {
   color: var(--ink-muted);
   font-style: italic;
   text-align: center;
+}
+
+/* -------- Observabilidade -------- */
+.observability-grid {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.backend-status {
+  margin-left: auto;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-mono-sm);
+}
+
+@media (max-width: 720px) {
+  .backend-status {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* -------- Footer -------- */

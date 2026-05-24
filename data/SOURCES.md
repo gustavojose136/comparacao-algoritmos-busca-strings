@@ -1,0 +1,3 @@
+- shakespeare.txt: The Complete Works of William Shakespeare, Project Gutenberg (https://www.gutenberg.org/files/100/100-0.txt)
+- don-quixote.txt: Don Quixote, Project Gutenberg (https://www.gutenberg.org/files/996/996-0.txt)
+- ecoli.fna: Escherichia coli str. K-12 substr. MG1655 genome, NCBI (https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz)
